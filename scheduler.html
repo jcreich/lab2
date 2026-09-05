@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Scheduler</title>
+<style>
+  :root{
+    --bg:#F5F6F3;
+    --surface:#FFFFFF;
+    --ink:#1F2A24;
+    --ink-soft:#5B6961;
+    --line:#DBDED6;
+    --accent:#3D6B5C;
+    --accent-dark:#2A4A3F;
+    --group:#DCE9DA;
+    --group-line:#8FB88A;
+    --indiv:#F3E9D2;
+    --indiv-line:#CBA968;
+    --block:#F0D6CE;
+    --block-line:#C97F63;
+    --danger:#B3432D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.5;
+  }
+  header{
+    padding:22px 28px 0 28px;
+  }
+  h1{
+    font-size:21px;
+    font-weight:650;
+    margin:0 0 4px 0;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:13px;
+    margin:0 0 18px 0;
+    max-width:640px;
+  }
+  nav.tabs{
+    display:flex;
+    gap:2px;
+    border-bottom:1px solid var(--line);
+    padding:0 28px;
+  }
+  nav.tabs button{
+    appearance:none;
+    border:none;
+    background:none;
+    font:inherit;
+    font-weight:550;
+    color:var(--ink-soft);
+    padding:10px 16px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+  }
+  nav.tabs button.active{
+    color:var(--ink);
+    border-bottom-color:var(--accent);
+  }
+  main{
+    padding:22px 28px 60px 28px;
+    max-width:1100px;
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 20px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-size:14px;
+    font-weight:650;
+    margin:0 0 4px 0;
+  }
+  .card .hint{
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin:0 0 14px 0;
+  }
+  .grid-form{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px 20px;
+  }
+  label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  input, select{
+    width:100%;
+    font:inherit;
+    padding:7px 9px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--surface);
+    color:var(--ink);
+  }
+  input:focus, select:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  button.btn{
+    appearance:none;
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:#fff;
+    font:inherit;
+    font-weight:600;
+    padding:8px 16px;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  button.btn:hover{background:var(--accent-dark); border-color:var(--accent-dark);}
+  button.btn.secondary{
+    background:var(--surface);
+    color:var(--accent);
+  }
+  button.btn.secondary:hover{background:#eef3f0;}
+  button.btn.ghost{
+    background:none;
+    border-color:var(--line);
+    color:var(--ink-soft);
+    font-weight:500;
+    padding:5px 10px;
+    font-size:12.5px;
+  }
+  button.btn.danger-ghost{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--danger);
+    font-weight:500;
+    padding:4px 9px;
+    font-size:12px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  th{
+    text-align:left;
+    font-size:11.5px;
+    font-weight:650;
+    color:var(--ink-soft);
+    padding:6px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  td{
+    padding:6px 8px;
+    border-bottom:1px solid #ECEEE9;
+    vertical-align:middle;
+  }
+  .person-block{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .person-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .person-head input[type=text], .person-head input[type=number]{width:auto;}
+  .name-field{width:160px !important;}
+  .flag-field{width:80px !important;}
+  .target-field{width:80px !important;}
+  .avail-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:4px 0;
+  }
+  .avail-row select, .avail-row input[type=time]{width:auto;}
+  .row-actions{margin-top:6px;}
+  .toolbar{
+    display:flex;
+    gap:10px;
+    margin-bottom:14px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .status{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .weekgrid{
+    overflow-x:auto;
+  }
+  .weekgrid table{table-layout:fixed; min-width:760px;}
+  .weekgrid th{background:var(--surface); position:sticky; top:0;}
+  .cell-time{
+    font-weight:650;
+    font-size:12px;
+    white-space:nowrap;
+    width:70px;
+  }
+  .cell-slot{
+    font-size:11.5px;
+    padding:6px 7px;
+    height:44px;
+    vertical-align:top;
+  }
+  .cell-group{background:var(--group); border-left:3px solid var(--group-line);}
+  .cell-indiv{background:var(--indiv); border-left:3px solid var(--indiv-line);}
+  .cell-block{background:var(--block); border-left:3px solid var(--block-line); font-style:italic; color:#7a4433;}
+  .legend{
+    display:flex;
+    gap:16px;
+    margin:10px 0 4px 0;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .swatch{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle;}
+  .warning-box{
+    background:#FBEDE9;
+    border:1px solid #E3B7A8;
+    color:var(--danger);
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:13px;
+    margin-bottom:14px;
+  }
+  .warning-box.empty{display:none;}
+  .empty-state{
+    color:var(--ink-soft);
+    font-size:13px;
+    padding:20px 0;
+    text-align:center;
+  }
+  .tag-yes{color:var(--accent-dark); font-weight:600;}
+  .tag-no{color:var(--ink-soft);}
+  @media print{
+    nav.tabs, .toolbar, header .subtitle{display:none;}
+    .panel{display:none !important;}
+    #panel-schedule{display:block !important;}
+    #results{display:block !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Group Scheduler</h1>
+  <p class="subtitle">Find overlapping availability across a roster, pack in as many valid group timeslots as possible, and fill everyone's remaining hours — all in the browser, nothing to install.</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="setup">1 · Setup</button>
+  <button class="tab-btn" data-tab="roster">2 · Roster</button>
+  <button class="tab-btn" data-tab="schedule">3 · Schedule</button>
+</nav>
+
+<main>
+
+  <!-- ===================== SETUP ===================== -->
+  <div class="panel active" id="panel-setup">
+    <div class="card">
+      <h2>Timeslot rules</h2>
+      <p class="hint">These apply to every day the roster is available.</p>
+      <div class="grid-form">
+        <div>
+          <label for="p-slotlen">Timeslot length (minutes)</label>
+          <input type="number" id="p-slotlen" value="120" min="15" step="15">
+        </div>
+        <div>
+          <label for="p-mingroup">Minimum people per group slot</label>
+          <input type="number" id="p-mingroup" value="3" min="2" step="1">
+        </div>
+        <div>
+          <label for="p-open">Location opens</label>
+          <input type="time" id="p-open" value="08:00">
+        </div>
+        <div>
+          <label for="p-close">Location closes</label>
+          <input type="time" id="p-close" value="21:00">
+        </div>
+        <div>
+          <label for="p-priority">Priority attribute to favor (optional)</label>
+          <input type="text" id="p-priority" placeholder="e.g. M, Senior, Trained" value="M">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Recurring blocked meeting (optional)</h2>
+      <p class="hint">A fixed commitment everyone must skip — e.g. a weekly lab meeting. Leave the day blank if there isn't one.</p>
+      <div class="grid-form">
+        <div>
+          <label for="p-blockday">Day</label>
+          <select id="p-blockday">
+            <option value="">— none —</option>
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+            <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          </select>
+        </div>
+        <div>
+          <label for="p-blockstart">Start</label>
+          <input type="time" id="p-blockstart" value="18:00">
+        </div>
+        <div>
+          <label for="p-blockend">End</label>
+          <input type="time" id="p-blockend" value="19:00">
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn" id="btn-save-params">Save setup</button>
+      <span class="status" id="setup-status"></span>
+    </div>
+  </div>
+
+  <!-- ===================== ROSTER ===================== -->
+  <div class="panel" id="panel-roster">
+    <div class="toolbar">
+      <button class="btn" id="btn-add-person">+ Add person</button>
+      <button class="btn secondary" id="btn-load-example">Load example roster</button>
+      <button class="btn secondary" id="btn-clear-roster">Clear roster</button>
+      <span class="status" id="roster-status"></span>
+    </div>
+    <div id="people-list"></div>
+    <div class="empty-state" id="roster-empty">No one on the roster yet — add a person, or load the example roster to see how it works.</div>
+  </div>
+
+  <!-- ===================== SCHEDULE ===================== -->
+  <div class="panel" id="panel-schedule">
+    <div class="toolbar">
+      <button class="btn" id="btn-generate">Generate schedule</button>
+      <button class="btn secondary" id="btn-export-csv">Export CSV</button>
+      <button class="btn secondary" id="btn-print">Print</button>
+      <span class="status" id="schedule-status"></span>
+    </div>
+
+    <div id="results" style="display:none;">
+      <div class="warning-box" id="short-warning"></div>
+
+      <div class="card">
+        <h2>Weekly grid</h2>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--group);border:1px solid var(--group-line);"></span>Group slot</span>
+          <span><span class="swatch" style="background:var(--indiv);border:1px solid var(--indiv-line);"></span>Individual time</span>
+          <span><span class="swatch" style="background:var(--block);border:1px solid var(--block-line);"></span>Blocked meeting</span>
+        </div>
+        <div class="weekgrid"><table id="grid-table"></table></div>
+      </div>
+
+      <div class="card">
+        <h2>Group slots</h2>
+        <p class="hint">The maximum set of non-overlapping group slots this roster can actually staff, favoring the priority attribute first.</p>
+        <table id="groups-table"></table>
+      </div>
+
+      <div class="card">
+        <h2>By person</h2>
+        <table id="person-table"></table>
+      </div>
+    </div>
+    <div class="empty-state" id="schedule-empty">Set up your rules and roster, then generate the schedule.</div>
+  </div>
+
+</main>
+
+<script>
+/* ---------------------------------------------------------------------
+   STATE
+--------------------------------------------------------------------- */
+let state = {
+  params: {
+    slotLen: 120, minGroup: 3, open: "08:00", close: "21:00",
+    blockDay: "", blockStart: "18:00", blockEnd: "19:00", priority: "M"
+  },
+  people: []   // {id, name, flag, target, avail:[{day,start,end}]}
+};
+let lastResult = null;
+const DAY_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+let idCounter = 1;
+function nextId(){ return "id" + (idCounter++); }
+
+/* ---------------------------------------------------------------------
+   PERSISTENCE (window.storage — personal, per-user)
+--------------------------------------------------------------------- */
+async function saveState(){
+  try{ await window.storage.set("scheduler-state", JSON.stringify(state), false); }
+  catch(e){ console.warn("save failed", e); }
+}
+async function loadState(){
+  try{
+    const r = await window.storage.get("scheduler-state", false);
+    if(r && r.value){
+      const parsed = JSON.parse(r.value);
+      if(parsed && parsed.params && parsed.people){ state = parsed; }
+    }
+  }catch(e){ /* nothing saved yet */ }
+}
+
+/* ---------------------------------------------------------------------
+   TIME HELPERS
+--------------------------------------------------------------------- */
+function toMin(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
+function fmtTime(mins){
+  mins = ((mins % 1440)+1440)%1440;
+  let h = Math.floor(mins/60), m = mins%60;
+  const ampm = h<12 ? "am":"pm";
+  let h12 = h%12; if(h12===0) h12=12;
+  return m===0 ? `${h12}${ampm}` : `${h12}:${String(m).padStart(2,"0")}${ampm}`;
+}
+
+/* ---------------------------------------------------------------------
+   TABS
+--------------------------------------------------------------------- */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("panel-"+btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* ---------------------------------------------------------------------
+   SETUP PANEL
+--------------------------------------------------------------------- */
+function loadParamsIntoForm(){
+  const p = state.params;
+  document.getElementById("p-slotlen").value = p.slotLen;
+  document.getElementById("p-mingroup").value = p.minGroup;
+  document.getElementById("p-open").value = p.open;
+  document.getElementById("p-close").value = p.close;
+  document.getElementById("p-priority").value = p.priority;
+  document.getElementById("p-blockday").value = p.blockDay;
+  document.getElementById("p-blockstart").value = p.blockStart;
+  document.getElementById("p-blockend").value = p.blockEnd;
+}
+function readParamsFromForm(){
+  state.params = {
+    slotLen: parseInt(document.getElementById("p-slotlen").value,10),
+    minGroup: parseInt(document.getElementById("p-mingroup").value,10),
+    open: document.getElementById("p-open").value,
+    close: document.getElementById("p-close").value,
+    priority: document.getElementById("p-priority").value.trim(),
+    blockDay: document.getElementById("p-blockday").value,
+    blockStart: document.getElementById("p-blockstart").value,
+    blockEnd: document.getElementById("p-blockend").value
+  };
+}
+document.getElementById("btn-save-params").addEventListener("click", async ()=>{
+  readParamsFromForm();
+  await saveState();
+  const s = document.getElementById("setup-status");
+  s.textContent = "Saved.";
+  setTimeout(()=>s.textContent="",1500);
+});
+
+/* ---------------------------------------------------------------------
+   ROSTER PANEL
+--------------------------------------------------------------------- */
+function renderRoster(){
+  const list = document.getElementById("people-list");
+  list.innerHTML = "";
+  document.getElementById("roster-empty").style.display = state.people.length ? "none":"block";
+  state.people.forEach(person=>{
+    const block = document.createElement("div");
+    block.className = "person-block";
+
+    const head = document.createElement("div");
+    head.className = "person-head";
+    head.innerHTML = `
+      <input type="text" class="name-field" placeholder="Name" value="${escapeHtml(person.name)}" data-field="name">
+      <div><label style="margin:0 6px 0 0; display:inline;">Priority flag</label><input type="text" class="flag-field" placeholder="e.g. M" value="${escapeHtml(person.flag||"")}" data-field="flag" style="display:inline-block;"></div>
+      <div><label style="margin:0 6px 0 0; display:inline;">Weekly target (h)</label><input type="number" class="target-field" min="0" step="0.5" value="${person.target}" data-field="target" style="display:inline-block;"></div>
+      <button class="btn danger-ghost" data-action="remove-person">Remove person</button>
+    `;
+    head.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("input", ()=>{
+        const f = inp.dataset.field;
+        person[f] = (f==="target") ? parseFloat(inp.value||0) : inp.value;
+      });
+    });
+    head.querySelector('[data-action="remove-person"]').addEventListener("click", ()=>{
+      state.people = state.people.filter(p=>p.id!==person.id);
+      renderRoster();
+    });
+    block.appendChild(head);
+
+    const availWrap = document.createElement("div");
+    person.avail.forEach((a, idx)=>{
+      const row = document.createElement("div");
+      row.className = "avail-row";
+      row.innerHTML = `
+        <select data-idx="${idx}" data-field="day">
+          ${DAY_ORDER.slice(0,5).concat(DAY_ORDER.slice(5)).map(d=>`<option value="${d}" ${a.day===d?"selected":""}>${d}</option>`).join("")}
+        </select>
+        <input type="time" data-idx="${idx}" data-field="start" value="${a.start}">
+        <span>to</span>
+        <input type="time" data-idx="${idx}" data-field="end" value="${a.end}">
+        <button class="btn danger-ghost" data-action="remove-avail" data-idx="${idx}">Remove</button>
+      `;
+      row.querySelector('[data-field="day"]').addEventListener("change", e=>{ a.day = e.target.value; });
+      row.querySelector('[data-field="start"]').addEventListener("input", e=>{ a.start = e.target.value; });
+      row.querySelector('[data-field="end"]').addEventListener("input", e=>{ a.end = e.target.value; });
+      row.querySelector('[data-action="remove-avail"]').addEventListener("click", ()=>{
+        person.avail.splice(idx,1);
+        renderRoster();
+      });
+      availWrap.appendChild(row);
+    });
+    block.appendChild(availWrap);
+
+    const addAvailBtn = document.createElement("button");
+    addAvailBtn.className = "btn ghost row-actions";
+    addAvailBtn.textContent = "+ Add availability block";
+    addAvailBtn.addEventListener("click", ()=>{
+      person.avail.push({day:"Monday", start:"09:00", end:"12:00"});
+      renderRoster();
+    });
+    block.appendChild(addAvailBtn);
+
+    list.appendChild(block);
+  });
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+document.getElementById("btn-add-person").addEventListener("click", ()=>{
+  state.people.push({id: nextId(), name:"", flag:"", target:0, avail:[]});
+  renderRoster();
+});
+document.getElementById("btn-clear-roster").addEventListener("click", ()=>{
+  if(confirm("Remove everyone from the roster?")){ state.people = []; renderRoster(); }
+});
+document.getElementById("btn-load-example").addEventListener("click", ()=>{
+  state.people = EXAMPLE_ROSTER.map(p=>({...p, id: nextId(), avail: p.avail.map(a=>({...a}))}));
+  state.params = {...EXAMPLE_PARAMS};
+  loadParamsIntoForm();
+  renderRoster();
+  document.getElementById("roster-status").textContent = "Example roster loaded.";
+  setTimeout(()=>document.getElementById("roster-status").textContent="",2000);
+});
+
+/* ---------------------------------------------------------------------
+   EXAMPLE DATA (the RA lab roster from our earlier conversation)
+--------------------------------------------------------------------- */
+const EXAMPLE_PARAMS = {slotLen:120, minGroup:3, open:"08:00", close:"21:00", blockDay:"Tuesday", blockStart:"18:00", blockEnd:"19:00", priority:"M"};
+const EXAMPLE_ROSTER = [
+  {name:"Emma P", flag:"", target:3, avail:[{day:"Monday",start:"09:30",end:"13:30"},{day:"Thursday",start:"11:30",end:"13:30"}]},
+  {name:"Marielle R", flag:"", target:8, avail:[
+    {day:"Monday",start:"08:00",end:"10:00"},{day:"Monday",start:"13:00",end:"16:00"},
+    {day:"Tuesday",start:"08:00",end:"14:00"},
+    {day:"Wednesday",start:"08:00",end:"10:00"},{day:"Wednesday",start:"13:00",end:"16:00"},
+    {day:"Thursday",start:"08:00",end:"14:00"},
+    {day:"Friday",start:"08:00",end:"10:00"},{day:"Friday",start:"13:00",end:"16:00"}]},
+  {name:"Sydney B", flag:"", target:8, avail:[
+    {day:"Monday",start:"13:30",end:"16:30"},{day:"Tuesday",start:"13:00",end:"16:30"},
+    {day:"Wednesday",start:"13:30",end:"16:30"},{day:"Friday",start:"13:30",end:"16:30"}]},
+  {name:"Delaney C", flag:"", target:8, avail:[
+    {day:"Monday",start:"08:00",end:"11:00"},{day:"Monday",start:"13:00",end:"14:00"},
+    {day:"Wednesday",start:"08:00",end:"11:00"},{day:"Wednesday",start:"13:00",end:"14:00"}]},
+  {name:"Emily W", flag:"", target:8, avail:[
+    {day:"Monday",start:"11:30",end:"13:30"},
+    {day:"Tuesday",start:"09:00",end:"13:30"},{day:"Tuesday",start:"15:30",end:"20:30"},
+    {day:"Wednesday",start:"11:30",end:"13:30"},{day:"Wednesday",start:"15:30",end:"17:30"},
+    {day:"Thursday",start:"09:00",end:"13:30"}]},
+  {name:"Kate J", flag:"", target:2, avail:[{day:"Tuesday",start:"10:00",end:"12:30"},{day:"Thursday",start:"10:00",end:"12:30"}]},
+  {name:"Cynnamon W", flag:"", target:3, avail:[{day:"Monday",start:"09:00",end:"14:00"},{day:"Wednesday",start:"09:00",end:"14:00"},{day:"Friday",start:"08:00",end:"11:00"}]},
+  {name:"Sharon S", flag:"", target:8, avail:[
+    {day:"Monday",start:"11:30",end:"14:00"},{day:"Monday",start:"16:00",end:"18:00"},
+    {day:"Wednesday",start:"11:30",end:"14:00"},{day:"Wednesday",start:"16:00",end:"18:00"},
+    {day:"Friday",start:"11:30",end:"14:00"},{day:"Friday",start:"16:00",end:"18:00"}]},
+  {name:"Isabella R", flag:"", target:3, avail:[{day:"Monday",start:"14:30",end:"19:00"},{day:"Wednesday",start:"14:30",end:"18:30"}]},
+  {name:"Angie M-G", flag:"", target:3, avail:[{day:"Monday",start:"17:30",end:"21:00"},{day:"Tuesday",start:"11:00",end:"18:00"}]},
+  {name:"Dallas", flag:"", target:6, avail:[
+    {day:"Monday",start:"14:00",end:"21:00"},
+    {day:"Tuesday",start:"11:30",end:"17:30"},
+    {day:"Wednesday",start:"13:00",end:"16:30"},
+    {day:"Thursday",start:"11:00",end:"17:30"},
+    {day:"Friday",start:"15:00",end:"18:00"}]},
+  {name:"Levi C", flag:"M", target:2, avail:[{day:"Monday",start:"15:30",end:"20:00"},{day:"Tuesday",start:"13:00",end:"20:00"},{day:"Wednesday",start:"15:30",end:"20:00"}]},
+  {name:"Joey V", flag:"M", target:3, avail:[{day:"Tuesday",start:"10:00",end:"12:00"},{day:"Tuesday",start:"14:00",end:"19:00"},{day:"Thursday",start:"10:00",end:"12:00"},{day:"Thursday",start:"14:00",end:"16:00"}]},
+  {name:"Andrew C", flag:"M", target:6, avail:[{day:"Monday",start:"12:00",end:"15:30"},{day:"Wednesday",start:"12:00",end:"15:00"},{day:"Friday",start:"12:00",end:"15:00"}]},
+  {name:"Aaron S", flag:"M", target:8, avail:[{day:"Monday",start:"17:00",end:"21:00"},{day:"Tuesday",start:"17:00",end:"21:00"},{day:"Wednesday",start:"17:00",end:"21:00"},{day:"Thursday",start:"09:00",end:"19:00"}]}
+];
+
+/* ---------------------------------------------------------------------
+   MAX-FLOW (Edmonds-Karp) — used to check whether a candidate set of
+   group slots can be staffed (>= minGroup each) within everyone's
+   remaining slot budget, and to extract an actual assignment.
+--------------------------------------------------------------------- */
+function maxFlowFeasible(people, budget, slotSet, minGroup){
+  // Build graph: 0=source, 1..P=people, P+1..P+S=slots, last=sink
+  const P = people.length, S = slotSet.length;
+  const V = 1 + P + S + 1;
+  const sink = V-1;
+  const cap = Array.from({length:V}, ()=>({}));
+  function addEdge(u,v,c){
+    cap[u][v] = (cap[u][v]||0) + c;
+    cap[v][u] = (cap[v][u]||0) + 0;
+  }
+  people.forEach((p,i)=> addEdge(0, 1+i, budget[p.id]||0) );
+  slotSet.forEach((s,j)=> addEdge(1+P+j, sink, minGroup) );
+  people.forEach((p,i)=>{
+    slotSet.forEach((s,j)=>{
+      if(s.cands.includes(p.id)) addEdge(1+i, 1+P+j, 1);
+    });
+  });
+
+  let total = 0;
+  while(true){
+    // BFS for augmenting path
+    const parent = new Array(V).fill(-1);
+    parent[0] = 0;
+    const queue=[0];
+    while(queue.length){
+      const u = queue.shift();
+      for(const v in cap[u]){
+        const vi = Number(v);
+        if(parent[vi]===-1 && cap[u][vi]>0){
+          parent[vi]=u;
+          if(vi===sink){ queue.length=0; break; }
+          queue.push(vi);
+        }
+      }
+    }
+    if(parent[sink]===-1) break;
+    // find bottleneck
+    let aug = Infinity;
+    let v = sink;
+    while(v!==0){ const u=parent[v]; aug = Math.min(aug, cap[u][v]); v=u; }
+    v = sink;
+    while(v!==0){ const u=parent[v]; cap[u][v]-=aug; cap[v][u]+=aug; v=u; }
+    total += aug;
+  }
+  const feasible = total >= minGroup*S;
+  // extract assignment: for each person->slot edge, flow used = original(1) - remaining cap
+  const assignment = {}; // slotIndex -> [personId,...]
+  slotSet.forEach((s,j)=> assignment[j]=[] );
+  if(feasible){
+    people.forEach((p,i)=>{
+      slotSet.forEach((s,j)=>{
+        if(s.cands.includes(p.id)){
+          const remaining = cap[1+i][1+P+j];
+          const used = 1 - remaining; // original capacity was 1
+          if(used>0.5) assignment[j].push(p.id);
+        }
+      });
+    });
+  }
+  return {feasible, assignment};
+}
+
+/* ---------------------------------------------------------------------
+   CORE SCHEDULING ALGORITHM
+--------------------------------------------------------------------- */
+function computeSchedule(){
+  const params = state.params;
+  const people = state.people.filter(p=>p.name.trim().length>0);
+  if(people.length===0) return null;
+
+  const openM = toMin(params.open), closeM = toMin(params.close);
+  const slotLen = params.slotLen, minGroup = params.minGroup;
+  const blockDay = params.blockDay;
+  const blockStart = params.blockStart ? toMin(params.blockStart) : null;
+  const blockEnd = params.blockEnd ? toMin(params.blockEnd) : null;
+
+  const daysPresent = Array.from(new Set(
+    people.flatMap(p=>p.avail.map(a=>a.day))
+  )).sort((a,b)=> DAY_ORDER.indexOf(a)-DAY_ORDER.indexOf(b));
+
+  function covers(person, day, s, e){
+    return person.avail.some(a=> a.day===day && toMin(a.start)<=s && toMin(a.end)>=e);
+  }
+
+  // 1. Generate candidate slots
+  let candidates = [];
+  let cid=0;
+  daysPresent.forEach(day=>{
+    let ss = openM;
+    while(ss+slotLen <= closeM){
+      const se = ss+slotLen;
+      const blocked = blockDay && day===blockDay && !(se<=blockStart || ss>=blockEnd);
+      if(!blocked){
+        const cands = people.filter(p=>covers(p, day, ss, se)).map(p=>p.id);
+        if(cands.length >= minGroup){
+          const hasPriority = params.priority ? people.some(p=>cands.includes(p.id) && p.flag && p.flag.trim()===params.priority.trim()) : false;
+          candidates.push({id:cid++, day, start:ss, end:se, cands, priority:hasPriority});
+        }
+      }
+      ss += 30;
+    }
+  });
+
+  function overlaps(a,b){ return a.day===b.day && !(a.end<=b.start || a.start>=b.end); }
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  const slotHours = slotLen/60;
+  const budget = {};
+  people.forEach(p=> budget[p.id] = Math.floor((p.target/slotHours) + 1e-9) );
+
+  // 2. Greedy + feasibility-checked selection, priority slots first, then fill.
+  // A single greedy pass (earliest-finish-time order) can get stuck in a locally-
+  // good-but-not-best arrangement when several people are scarce resources shared
+  // across candidate slots. We run many randomized-order attempts and keep the
+  // attempt that staffs the most priority slots, then the most total slots.
+  function runSelection(pool, accepted, useShuffle){
+    const order = useShuffle ? shuffle(pool) : [...pool].sort((a,b)=>a.end-b.end);
+    for(const cand of order){
+      if(accepted.some(a=>overlaps(a,cand))) continue;
+      const trial = [...accepted, cand];
+      const {feasible} = maxFlowFeasible(people, budget, trial, minGroup);
+      if(feasible) accepted.push(cand);
+    }
+    return accepted;
+  }
+  function attempt(useShuffle){
+    let acc = [];
+    const priorityPool = candidates.filter(c=>c.priority);
+    acc = runSelection(priorityPool, acc, useShuffle);
+    const remainingPool = candidates.filter(c=> !acc.some(a=>a.id===c.id) );
+    acc = runSelection(remainingPool, acc, useShuffle);
+    return acc;
+  }
+
+  let accepted = attempt(false); // deterministic baseline
+  let bestPri = accepted.filter(a=>a.priority).length;
+  const RESTARTS = 250;
+  for(let i=0; i<RESTARTS; i++){
+    const trial = attempt(true);
+    const triPri = trial.filter(a=>a.priority).length;
+    if(triPri > bestPri || (triPri===bestPri && trial.length > accepted.length)){
+      accepted = trial; bestPri = triPri;
+    }
+  }
+
+  // 3. Final assignment extraction for the accepted set
+  const {feasible, assignment} = maxFlowFeasible(people, budget, accepted, minGroup);
+  const groupSlots = accepted.map((s,j)=>({
+    day: s.day, start: s.start, end: s.end, priority: s.priority,
+    attendees: (assignment[j]||[]).map(pid=>people.find(p=>p.id===pid).name).sort()
+  })).sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+
+  // 4. Build per-person schedule: group hours + fill remaining from leftover availability
+  const schedule = {}; people.forEach(p=> schedule[p.id]=[] );
+  const hoursUsed = {}; people.forEach(p=> hoursUsed[p.id]=0 );
+  accepted.forEach((s,j)=>{
+    (assignment[j]||[]).forEach(pid=>{
+      schedule[pid].push({day:s.day, start:s.start, end:s.end, type:"GROUP"});
+      hoursUsed[pid] += (s.end-s.start)/60;
+    });
+  });
+
+  function subtract(intervals, day, s, e){
+    const out=[];
+    intervals.forEach(iv=>{
+      if(iv.day!==day || e<=iv.start || s>=iv.end){ out.push(iv); return; }
+      if(s>iv.start) out.push({day, start:iv.start, end:s});
+      if(e<iv.end) out.push({day, start:e, end:iv.end});
+    });
+    return out;
+  }
+
+  const shortfalls = [];
+  people.forEach(p=>{
+    let leftover = p.avail.map(a=>({day:a.day, start:toMin(a.start), end:toMin(a.end)}));
+    if(blockDay) leftover = subtract(leftover, blockDay, blockStart, blockEnd);
+    schedule[p.id].forEach(iv=>{ leftover = subtract(leftover, iv.day, iv.start, iv.end); });
+    leftover.sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+
+    let need = p.target - hoursUsed[p.id];
+    for(const iv of leftover){
+      if(need <= 1e-9) break;
+      const wlen = (iv.end-iv.start)/60;
+      const take = Math.min(wlen, need);
+      const takeEnd = iv.start + Math.round(take*60);
+      schedule[p.id].push({day: iv.day, start: iv.start, end: takeEnd, type:"INDIV"});
+      hoursUsed[p.id] += take;
+      need -= take;
+    }
+    if(need > 1e-6) shortfalls.push({name:p.name, short: need, target: p.target});
+  });
+
+  return {
+    days: daysPresent, params, groupSlots, schedule, hoursUsed, shortfalls, people
+  };
+}
+
+/* ---------------------------------------------------------------------
+   RENDER RESULTS
+--------------------------------------------------------------------- */
+function renderResults(result){
+  document.getElementById("schedule-empty").style.display = result ? "none":"block";
+  document.getElementById("results").style.display = result ? "block":"none";
+  if(!result) return;
+
+  // Warning box
+  const warnBox = document.getElementById("short-warning");
+  if(result.shortfalls.length){
+    warnBox.classList.remove("empty");
+    warnBox.innerHTML = "Not enough availability to reach target hours for: " +
+      result.shortfalls.map(s=>`${escapeHtml(s.name)} (short ${s.short.toFixed(1)}h of ${s.target}h)`).join(", ");
+  } else {
+    warnBox.classList.add("empty");
+    warnBox.innerHTML = "";
+  }
+
+  // Weekly grid
+  const openM = toMin(result.params.open), closeM = toMin(result.params.close);
+  const times = [];
+  for(let t=openM; t<closeM; t+=30) times.push(t);
+  const occ = {};
+  result.days.forEach(d=> occ[d]={} );
+  Object.entries(result.schedule).forEach(([pid, entries])=>{
+    const person = result.people.find(p=>p.id===pid);
+    entries.forEach(iv=>{
+      for(let t=iv.start; t<iv.end; t+=30){
+        occ[iv.day] = occ[iv.day]||{};
+        occ[iv.day][t] = occ[iv.day][t]||[];
+        occ[iv.day][t].push({name:person.name, type:iv.type});
+      }
+    });
+  });
+  let gridHtml = "<thead><tr><th>Time</th>" + result.days.map(d=>`<th>${d}</th>`).join("") + "</tr></thead><tbody>";
+  const blockDay = result.params.blockDay, blockStart = result.params.blockStart?toMin(result.params.blockStart):null, blockEnd = result.params.blockEnd?toMin(result.params.blockEnd):null;
+  times.forEach(t=>{
+    gridHtml += `<tr><td class="cell-time">${fmtTime(t)}</td>`;
+    result.days.forEach(day=>{
+      if(blockDay && day===blockDay && blockStart<=t && t<blockEnd){
+        gridHtml += `<td class="cell-slot cell-block">Blocked meeting</td>`;
+      } else {
+        const here = (occ[day] && occ[day][t]) || [];
+        const groupNames = here.filter(x=>x.type==="GROUP").map(x=>x.name).sort();
+        const indivNames = here.filter(x=>x.type==="INDIV").map(x=>x.name).sort();
+        let cls = "cell-slot";
+        let text = "";
+        if(groupNames.length){ cls+=" cell-group"; text += "<b>Group:</b> "+groupNames.join(", "); }
+        if(indivNames.length){ cls+=(groupNames.length?"":" cell-indiv"); text += (groupNames.length?"<br>":"")+"<b>Indiv:</b> "+indivNames.join(", "); }
+        gridHtml += `<td class="${cls}">${text}</td>`;
+      }
+    });
+    gridHtml += "</tr>";
+  });
+  gridHtml += "</tbody>";
+  document.getElementById("grid-table").innerHTML = gridHtml;
+
+  // Group slots table
+  let gHtml = "<thead><tr><th>Day</th><th>Start</th><th>End</th><th>Priority match</th><th>Attendees</th></tr></thead><tbody>";
+  result.groupSlots.forEach(s=>{
+    gHtml += `<tr><td>${s.day}</td><td>${fmtTime(s.start)}</td><td>${fmtTime(s.end)}</td><td>${s.priority?'<span class="tag-yes">Yes</span>':'<span class="tag-no">No</span>'}</td><td>${s.attendees.join(", ")}</td></tr>`;
+  });
+  if(result.groupSlots.length===0) gHtml += `<tr><td colspan="5">No group slot meeting the minimum could be staffed with this roster.</td></tr>`;
+  gHtml += "</tbody>";
+  document.getElementById("groups-table").innerHTML = gHtml;
+
+  // Per person table
+  let pHtml = "<thead><tr><th>Name</th><th>Target (h)</th><th>Scheduled (h)</th><th>Day</th><th>Start</th><th>End</th><th>Type</th></tr></thead><tbody>";
+  result.people.forEach(p=>{
+    const entries = [...result.schedule[p.id]].sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+    if(entries.length===0){
+      pHtml += `<tr><td>${escapeHtml(p.name)}</td><td>${p.target}</td><td>${result.hoursUsed[p.id].toFixed(1)}</td><td colspan="4">—</td></tr>`;
+    }
+    entries.forEach((iv, idx)=>{
+      pHtml += `<tr><td>${idx===0?escapeHtml(p.name):""}</td><td>${idx===0?p.target:""}</td><td>${idx===0?result.hoursUsed[p.id].toFixed(1):""}</td>
+        <td>${iv.day}</td><td>${fmtTime(iv.start)}</td><td>${fmtTime(iv.end)}</td><td>${iv.type==="GROUP"?"Group":"Individual"}</td></tr>`;
+    });
+  });
+  pHtml += "</tbody>";
+  document.getElementById("person-table").innerHTML = pHtml;
+}
+
+document.getElementById("btn-generate").addEventListener("click", async ()=>{
+  readParamsFromForm();
+  await saveState();
+  lastResult = computeSchedule();
+  renderResults(lastResult);
+  const s = document.getElementById("schedule-status");
+  if(lastResult){
+    s.textContent = `${lastResult.groupSlots.length} group slot(s) scheduled.`;
+  } else {
+    s.textContent = "Add at least one person with a name first.";
+  }
+  setTimeout(()=>s.textContent="", 3000);
+});
+
+document.getElementById("btn-print").addEventListener("click", ()=> window.print());
+
+document.getElementById("btn-export-csv").addEventListener("click", ()=>{
+  if(!lastResult){ alert("Generate a schedule first."); return; }
+  let csv = "Name,Target Hours,Scheduled Hours,Day,Start,End,Type\n";
+  lastResult.people.forEach(p=>{
+    const entries = [...lastResult.schedule[p.id]].sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+    if(entries.length===0){
+      csv += `"${p.name}",${p.target},${lastResult.hoursUsed[p.id].toFixed(1)},,,,\n`;
+    }
+    entries.forEach(iv=>{
+      csv += `"${p.name}",${p.target},${lastResult.hoursUsed[p.id].toFixed(1)},${iv.day},${fmtTime(iv.start)},${fmtTime(iv.end)},${iv.type==="GROUP"?"Group":"Individual"}\n`;
+    });
+  });
+  csv += "\nGroup Slots\nDay,Start,End,Priority Match,Attendees\n";
+  lastResult.groupSlots.forEach(s=>{
+    csv += `${s.day},${fmtTime(s.start)},${fmtTime(s.end)},${s.priority?"Yes":"No"},"${s.attendees.join(", ")}"\n`;
+  });
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "schedule.csv";
+  a.click();
+});
+
+/* ---------------------------------------------------------------------
+   INIT
+--------------------------------------------------------------------- */
+(async function init(){
+  await loadState();
+  loadParamsIntoForm();
+  renderRoster();
+})();
+</script>
+</body>
+</html>
