@@ -605,6 +605,75 @@ const EXAMPLE_ROSTER = [
    group slots can be staffed (>= minGroup each) within everyone's
    remaining slot budget, and to extract an actual assignment.
 --------------------------------------------------------------------- */
+function runEdmondsKarp(cap, V, sink){
+  let total = 0;
+  while(true){
+    const parent = new Array(V).fill(-1);
+    parent[0] = 0;
+    const queue=[0];
+    while(queue.length){
+      const u = queue.shift();
+      for(const v in cap[u]){
+        const vi = Number(v);
+        if(parent[vi]===-1 && cap[u][vi]>0){
+          parent[vi]=u;
+          if(vi===sink){ queue.length=0; break; }
+          queue.push(vi);
+        }
+      }
+    }
+    if(parent[sink]===-1) break;
+    let aug = Infinity, v = sink;
+    while(v!==0){ const u=parent[v]; aug = Math.min(aug, cap[u][v]); v=u; }
+    v = sink;
+    while(v!==0){ const u=parent[v]; cap[u][v]-=aug; cap[v][u]+=aug; v=u; }
+    total += aug;
+  }
+  return total;
+}
+
+// Two-phase assignment: first push as much flow as possible using ONLY
+// priority-flagged people, one per slot (so priority attendance is spread
+// across distinct slots rather than stacked), then fill each slot up to
+// minGroup using everyone else's remaining budget. This makes "does this
+// slot actually have a priority person attending" a real optimized outcome
+// rather than an accident of iteration order.
+function assignAttendeesPreferringPriority(people, budget, slotSet, minGroup, priorityValue){
+  const P = people.length, S = slotSet.length;
+  const V = 1+P+S+1, sink = V-1;
+  const cap = Array.from({length:V}, ()=>({}));
+  function addEdge(u,v,c){ cap[u][v]=(cap[u][v]||0)+c; cap[v][u]=(cap[v][u]||0)+0; }
+  people.forEach((p,i)=> addEdge(0, 1+i, budget[p.id]||0) );
+  slotSet.forEach((s,j)=> addEdge(1+P+j, sink, 1) ); // phase 1: cap 1 per slot
+  const isPriority = p => priorityValue && p.flag && p.flag.trim()===priorityValue.trim();
+  people.forEach((p,i)=>{
+    if(isPriority(p)) slotSet.forEach((s,j)=>{ if(s.cands.includes(p.id)) addEdge(1+i, 1+P+j, 1); });
+  });
+  const phase1Total = runEdmondsKarp(cap, V, sink);
+
+  // phase 2: raise slot caps to minGroup, add non-priority edges, keep augmenting
+  slotSet.forEach((s,j)=>{ cap[1+P+j][sink] += (minGroup-1); });
+  people.forEach((p,i)=>{
+    if(!isPriority(p)) slotSet.forEach((s,j)=>{ if(s.cands.includes(p.id)) addEdge(1+i, 1+P+j, 1); });
+  });
+  const total = phase1Total + runEdmondsKarp(cap, V, sink);
+
+  const feasible = total >= minGroup*S;
+  const assignment = {}; slotSet.forEach((s,j)=> assignment[j]=[] );
+  if(feasible){
+    people.forEach((p,i)=>{
+      slotSet.forEach((s,j)=>{
+        if(s.cands.includes(p.id)){
+          const remaining = cap[1+i][1+P+j];
+          const used = 1 - remaining;
+          if(used>0.5) assignment[j].push(p.id);
+        }
+      });
+    });
+  }
+  return {feasible, assignment};
+}
+
 function maxFlowFeasible(people, budget, slotSet, minGroup){
   // Build graph: 0=source, 1..P=people, P+1..P+S=slots, last=sink
   const P = people.length, S = slotSet.length;
@@ -743,23 +812,46 @@ function computeSchedule(){
     return acc;
   }
 
+  // Score a candidate slot-set by what actually matters: how many slots end up
+  // with a real priority attendee (not just a priority-eligible candidate),
+  // then how many total slots got staffed.
+  function score(trial){
+    const {assignment} = assignAttendeesPreferringPriority(people, budget, trial, minGroup, params.priority);
+    let realPri = 0;
+    trial.forEach((s,j)=>{
+      const ids = assignment[j]||[];
+      if(ids.some(pid=>{ const person=people.find(p=>p.id===pid); return person.flag && params.priority && person.flag.trim()===params.priority.trim(); })) realPri++;
+    });
+    return {realPri, total: trial.length};
+  }
+
   let accepted = attempt(false); // deterministic baseline
-  let bestPri = accepted.filter(a=>a.priority).length;
+  let bestScore = score(accepted);
   const RESTARTS = 250;
   for(let i=0; i<RESTARTS; i++){
     const trial = attempt(true);
-    const triPri = trial.filter(a=>a.priority).length;
-    if(triPri > bestPri || (triPri===bestPri && trial.length > accepted.length)){
-      accepted = trial; bestPri = triPri;
+    const s = score(trial);
+    if(s.realPri > bestScore.realPri || (s.realPri===bestScore.realPri && s.total > bestScore.total)){
+      accepted = trial; bestScore = s;
     }
   }
 
-  // 3. Final assignment extraction for the accepted set
-  const {feasible, assignment} = maxFlowFeasible(people, budget, accepted, minGroup);
-  const groupSlots = accepted.map((s,j)=>({
-    day: s.day, start: s.start, end: s.end, priority: s.priority,
-    attendees: (assignment[j]||[]).map(pid=>people.find(p=>p.id===pid).name).sort()
-  })).sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+  // 3. Final assignment extraction for the accepted set — once we know WHICH
+  // slots are happening, solve attendee assignment to actually maximize how
+  // many of them get a real priority-flagged attendee (not just "could have").
+  const {feasible, assignment} = assignAttendeesPreferringPriority(people, budget, accepted, minGroup, params.priority);
+  const groupSlots = accepted.map((s,j)=>{
+    const attendeeIds = assignment[j]||[];
+    const attendeeNames = attendeeIds.map(pid=>people.find(p=>p.id===pid).name).sort();
+    // Report priority-match based on who is ACTUALLY assigned to this slot, not
+    // who merely could have attended — those can differ once budgets are tight
+    // enough that a priority-flagged person is needed more urgently elsewhere.
+    const actuallyHasPriority = params.priority ? attendeeIds.some(pid=>{
+      const person = people.find(p=>p.id===pid);
+      return person.flag && person.flag.trim()===params.priority.trim();
+    }) : false;
+    return { day: s.day, start: s.start, end: s.end, priority: actuallyHasPriority, attendees: attendeeNames };
+  }).sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
 
   // 4. Build per-person schedule: group hours + fill remaining from leftover availability
   const schedule = {}; people.forEach(p=> schedule[p.id]=[] );
