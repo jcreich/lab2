@@ -6,69 +6,96 @@
 <title>Group Scheduler</title>
 <style>
   :root{
-    --bg:#F5F6F3;
+    --bg:#F1EFE6;
+    --bg-texture: repeating-linear-gradient(0deg, rgba(30,38,32,0.028) 0px, rgba(30,38,32,0.028) 1px, transparent 1px, transparent 25px),
+                  repeating-linear-gradient(90deg, rgba(30,38,32,0.028) 0px, rgba(30,38,32,0.028) 1px, transparent 1px, transparent 25px);
     --surface:#FFFFFF;
-    --ink:#1F2A24;
-    --ink-soft:#5B6961;
-    --line:#DBDED6;
-    --accent:#3D6B5C;
-    --accent-dark:#2A4A3F;
+    --ink:#1E2620;
+    --ink-soft:#5C6A60;
+    --line:#DEDACD;
+    --accent:#2F6F5E;
+    --accent-dark:#1F4B3F;
+    --accent-wash:#E7F0EC;
     --group:#DCE9DA;
-    --group-line:#8FB88A;
+    --group-line:#7FAE79;
     --indiv:#F3E9D2;
-    --indiv-line:#CBA968;
+    --indiv-line:#C9A55E;
+    --solo:#DCE6EF;
+    --solo-line:#6F98BE;
+    --overlap:#F6DCE3;
+    --overlap-line:#BD6784;
     --block:#F0D6CE;
     --block-line:#C97F63;
     --danger:#B3432D;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background:var(--bg);
+    font-family: var(--sans);
+    background-color: var(--bg);
+    background-image: var(--bg-texture);
     color:var(--ink);
     font-size:14px;
     line-height:1.5;
+    -webkit-font-smoothing:antialiased;
   }
   header{
-    padding:22px 28px 0 28px;
+    padding:28px 32px 0 32px;
+    max-width:1100px;
   }
   h1{
-    font-size:21px;
-    font-weight:650;
-    margin:0 0 4px 0;
-    letter-spacing:-0.01em;
+    font-size:23px;
+    font-weight:680;
+    margin:0 0 5px 0;
+    letter-spacing:-0.015em;
+    color:var(--ink);
+  }
+  h1::before{
+    content:"";
+    display:inline-block;
+    width:9px; height:9px;
+    border-radius:2px;
+    background:var(--accent);
+    margin-right:9px;
+    vertical-align:middle;
+    transform:translateY(-1px);
   }
   .subtitle{
     color:var(--ink-soft);
-    font-size:13px;
-    margin:0 0 18px 0;
-    max-width:640px;
+    font-size:13.5px;
+    margin:0 0 20px 0;
+    max-width:620px;
   }
   nav.tabs{
     display:flex;
-    gap:2px;
+    gap:4px;
     border-bottom:1px solid var(--line);
-    padding:0 28px;
+    padding:0 32px;
+    max-width:1100px;
   }
   nav.tabs button{
     appearance:none;
     border:none;
     background:none;
     font:inherit;
-    font-weight:550;
+    font-weight:600;
+    font-size:13.5px;
     color:var(--ink-soft);
-    padding:10px 16px;
+    padding:11px 14px;
     cursor:pointer;
-    border-bottom:2px solid transparent;
+    border-bottom:2.5px solid transparent;
     margin-bottom:-1px;
+    transition:color .12s ease, border-color .12s ease;
   }
+  nav.tabs button:hover{ color:var(--ink); }
   nav.tabs button.active{
-    color:var(--ink);
+    color:var(--accent-dark);
     border-bottom-color:var(--accent);
   }
   main{
-    padding:22px 28px 60px 28px;
+    padding:24px 32px 64px 32px;
     max-width:1100px;
   }
   .panel{display:none;}
@@ -77,13 +104,16 @@
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:10px;
-    padding:18px 20px;
+    padding:19px 21px;
     margin-bottom:16px;
+    box-shadow: 0 1px 2px rgba(30,38,32,0.04);
   }
   .card h2{
-    font-size:14px;
-    font-weight:650;
-    margin:0 0 4px 0;
+    font-size:14.5px;
+    font-weight:680;
+    margin:0 0 5px 0;
+    padding-left:10px;
+    border-left:3px solid var(--accent);
   }
   .card .hint{
     color:var(--ink-soft);
@@ -93,27 +123,30 @@
   .grid-form{
     display:grid;
     grid-template-columns:repeat(2, 1fr);
-    gap:12px 20px;
+    gap:13px 20px;
   }
   label{
     display:block;
-    font-size:12.5px;
-    font-weight:600;
+    font-size:12px;
+    font-weight:650;
     color:var(--ink-soft);
     margin-bottom:4px;
   }
   input, select{
     width:100%;
     font:inherit;
-    padding:7px 9px;
+    padding:7px 10px;
     border:1px solid var(--line);
     border-radius:6px;
     background:var(--surface);
     color:var(--ink);
+    transition:border-color .12s ease;
   }
+  input:hover, select:hover{ border-color:#C7C2AF; }
   input:focus, select:focus{
     outline:2px solid var(--accent);
     outline-offset:1px;
+    border-color:var(--accent);
   }
   button.btn{
     appearance:none;
@@ -121,35 +154,41 @@
     background:var(--accent);
     color:#fff;
     font:inherit;
-    font-weight:600;
+    font-weight:650;
+    font-size:13px;
     padding:8px 16px;
     border-radius:7px;
     cursor:pointer;
+    transition: background .12s ease, transform .05s ease;
   }
   button.btn:hover{background:var(--accent-dark); border-color:var(--accent-dark);}
+  button.btn:active{transform:translateY(1px);}
   button.btn.secondary{
     background:var(--surface);
-    color:var(--accent);
+    color:var(--accent-dark);
+    border-color:var(--line);
   }
-  button.btn.secondary:hover{background:#eef3f0;}
+  button.btn.secondary:hover{background:var(--accent-wash); border-color:var(--accent);}
   button.btn.ghost{
     background:none;
     border-color:var(--line);
     color:var(--ink-soft);
-    font-weight:500;
+    font-weight:550;
     padding:5px 10px;
     font-size:12.5px;
   }
+  button.btn.ghost:hover{ background:#F2F0E7; }
   button.btn.danger-ghost{
     background:none;
     border:1px solid var(--line);
     color:var(--danger);
-    font-weight:500;
+    font-weight:550;
     padding:4px 9px;
     font-size:12px;
     border-radius:6px;
     cursor:pointer;
   }
+  button.btn.danger-ghost:hover{ background:#FBEDE9; border-color:#E3B7A8; }
   table{
     width:100%;
     border-collapse:collapse;
@@ -157,104 +196,137 @@
   }
   th{
     text-align:left;
-    font-size:11.5px;
-    font-weight:650;
+    font-size:11px;
+    font-weight:700;
     color:var(--ink-soft);
-    padding:6px 8px;
-    border-bottom:1px solid var(--line);
+    padding:7px 9px;
+    border-bottom:1.5px solid var(--line);
+    letter-spacing:0.01em;
   }
   td{
-    padding:6px 8px;
-    border-bottom:1px solid #ECEEE9;
+    padding:7px 9px;
+    border-bottom:1px solid #EDEBE1;
     vertical-align:middle;
   }
+  tbody tr:hover td{ background:#FAF9F4; }
   .person-block{
     border:1px solid var(--line);
-    border-radius:8px;
-    padding:12px 14px;
-    margin-bottom:10px;
+    border-radius:9px;
+    padding:13px 15px;
+    margin-bottom:11px;
+    background:var(--surface);
+    transition:border-color .12s ease;
   }
+  .person-block:hover{ border-color:#CBC6B2; }
   .person-head{
     display:flex;
     align-items:center;
     gap:12px;
     flex-wrap:wrap;
-    margin-bottom:8px;
+    margin-bottom:9px;
   }
   .person-head input[type=text], .person-head input[type=number]{width:auto;}
-  .name-field{width:160px !important;}
+  .name-field{width:160px !important; font-weight:650;}
   .flag-field{width:80px !important;}
   .target-field{width:80px !important;}
   .avail-row{
     display:flex;
     align-items:center;
     gap:8px;
-    margin:4px 0;
+    margin:5px 0;
+    font-family:var(--mono);
+    font-size:12.5px;
   }
+  .avail-row select{ font-family:var(--sans); }
   .avail-row select, .avail-row input[type=time]{width:auto;}
-  .row-actions{margin-top:6px;}
+  .row-actions{margin-top:7px;}
   .toolbar{
     display:flex;
     gap:10px;
-    margin-bottom:14px;
+    margin-bottom:16px;
     align-items:center;
     flex-wrap:wrap;
   }
   .status{
     font-size:12.5px;
     color:var(--ink-soft);
+    font-style:italic;
   }
   .weekgrid{
     overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:8px;
   }
   .weekgrid table{table-layout:fixed; min-width:760px;}
-  .weekgrid th{background:var(--surface); position:sticky; top:0;}
+  .weekgrid th{background:#FAF9F4; position:sticky; top:0; text-align:center;}
+  .weekgrid th:first-child{text-align:left;}
   .cell-time{
     font-weight:650;
-    font-size:12px;
+    font-size:11.5px;
+    font-family:var(--mono);
     white-space:nowrap;
     width:70px;
+    background:#FAF9F4;
+    color:var(--ink-soft);
   }
   .cell-slot{
     font-size:11.5px;
-    padding:6px 7px;
+    padding:6px 8px;
     height:44px;
     vertical-align:top;
+    border-left:1px solid #F0EEE4;
   }
-  .cell-group{background:var(--group); border-left:3px solid var(--group-line);}
-  .cell-indiv{background:var(--indiv); border-left:3px solid var(--indiv-line);}
-  .cell-block{background:var(--block); border-left:3px solid var(--block-line); font-style:italic; color:#7a4433;}
+  .cell-group{background:var(--group); border-left:3px solid var(--group-line) !important;}
+  .cell-indiv{background:var(--indiv); border-left:3px solid var(--indiv-line) !important;}
+  .cell-solo{background:var(--solo); border-left:3px solid var(--solo-line) !important;}
+  .cell-overlap{background:var(--overlap); border-left:3px solid var(--overlap-line) !important;}
+  .cell-block{background:var(--block); border-left:3px solid var(--block-line) !important; font-style:italic; color:#7a4433;}
+  .flex-mark{
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:#B98900; margin-left:4px; vertical-align:middle;
+  }
   .legend{
     display:flex;
-    gap:16px;
-    margin:10px 0 4px 0;
+    gap:18px;
+    flex-wrap:wrap;
+    margin:11px 0 14px 0;
     font-size:12px;
     color:var(--ink-soft);
   }
-  .swatch{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle;}
+  .swatch{display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;}
   .warning-box{
     background:#FBEDE9;
     border:1px solid #E3B7A8;
     color:var(--danger);
     border-radius:8px;
-    padding:10px 14px;
+    padding:11px 15px;
     font-size:13px;
-    margin-bottom:14px;
+    margin-bottom:16px;
   }
   .warning-box.empty{display:none;}
   .empty-state{
     color:var(--ink-soft);
     font-size:13px;
-    padding:20px 0;
+    padding:32px 0;
     text-align:center;
+    border:1px dashed var(--line);
+    border-radius:10px;
+    background:rgba(255,255,255,0.4);
   }
-  .tag-yes{color:var(--accent-dark); font-weight:600;}
+  .tag-yes{color:var(--accent-dark); font-weight:650;}
   .tag-no{color:var(--ink-soft);}
+  #groups-table td:nth-child(2), #groups-table td:nth-child(3),
+  #person-table td:nth-child(2), #person-table td:nth-child(3),
+  #person-table td:nth-child(5), #person-table td:nth-child(6){
+    font-family:var(--mono); font-size:12.5px;
+  }
+  ::selection{ background: var(--accent-wash); }
   @media print{
     nav.tabs, .toolbar, header .subtitle{display:none;}
     .panel{display:none !important;}
     #panel-schedule{display:block !important;}
     #results{display:block !important;}
+    body{background-image:none;}
   }
 </style>
 </head>
@@ -276,16 +348,30 @@
   <!-- ===================== SETUP ===================== -->
   <div class="panel active" id="panel-setup">
     <div class="card">
+      <h2>Scheduling mode</h2>
+      <p class="hint">Group mode packs people into shared timeslots (set your own minimum group size below — pairs, trios, whatever fits). Coverage mode assigns exactly one RA per shift and actively avoids scheduling two people at the same time — good for things like desk or lab-monitoring coverage.</p>
+      <div class="grid-form" style="grid-template-columns:1fr;">
+        <div>
+          <label for="p-mode">Mode</label>
+          <select id="p-mode">
+            <option value="group">Group timeslots (2+ people per slot)</option>
+            <option value="coverage">Single-RA coverage (minimize overlap)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>Timeslot rules</h2>
-      <p class="hint">These apply to every day the roster is available.</p>
+      <p class="hint" id="timeslot-hint">These apply to every day the roster is available.</p>
       <div class="grid-form">
         <div>
-          <label for="p-slotlen">Timeslot length (minutes)</label>
+          <label for="p-slotlen" id="slotlen-label">Timeslot length (minutes)</label>
           <input type="number" id="p-slotlen" value="120" min="15" step="15">
         </div>
-        <div>
+        <div id="mingroup-field">
           <label for="p-mingroup">Minimum people per group slot</label>
-          <input type="number" id="p-mingroup" value="3" min="2" step="1">
+          <input type="number" id="p-mingroup" value="2" min="2" step="1">
         </div>
         <div>
           <label for="p-open">Location opens</label>
@@ -295,9 +381,16 @@
           <label for="p-close">Location closes</label>
           <input type="time" id="p-close" value="21:00">
         </div>
-        <div>
+        <div id="priority-field">
           <label for="p-priority">Priority attribute to favor (optional)</label>
           <input type="text" id="p-priority" placeholder="e.g. M, Senior, Trained" value="M">
+        </div>
+        <div id="allowoverlap-field" style="display:none;">
+          <label for="p-allowoverlap">If someone can't reach their target hours without overlap</label>
+          <select id="p-allowoverlap">
+            <option value="yes">Allow overlap to close the gap (recommended)</option>
+            <option value="no">Leave them short — never overlap</option>
+          </select>
         </div>
       </div>
     </div>
@@ -357,23 +450,27 @@
 
       <div class="card">
         <h2>Weekly grid</h2>
-        <div class="legend">
-          <span><span class="swatch" style="background:var(--group);border:1px solid var(--group-line);"></span>Group slot</span>
-          <span><span class="swatch" style="background:var(--indiv);border:1px solid var(--indiv-line);"></span>Individual time</span>
+        <div class="legend" id="grid-legend">
+          <span id="legend-group"><span class="swatch" style="background:var(--group);border:1px solid var(--group-line);"></span>Group slot</span>
+          <span id="legend-indiv"><span class="swatch" style="background:var(--indiv);border:1px solid var(--indiv-line);"></span>Individual time</span>
+          <span id="legend-solo" style="display:none;"><span class="swatch" style="background:#DCE6EF;border:1px solid #7FA3C4;"></span>Assigned (single RA)</span>
+          <span id="legend-overlap" style="display:none;"><span class="swatch" style="background:#F6DCE3;border:1px solid #C4708A;"></span>Overlap (added to meet target hours)</span>
           <span><span class="swatch" style="background:var(--block);border:1px solid var(--block-line);"></span>Blocked meeting</span>
         </div>
         <div class="weekgrid"><table id="grid-table"></table></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="groupslots-card">
         <h2>Group slots</h2>
         <p class="hint">The maximum set of non-overlapping group slots this roster can actually staff, favoring the priority attribute first.</p>
         <table id="groups-table"></table>
+        <p class="hint" id="groupslots-alt-note" style="display:none;margin:8px 0 0 0;">A "Yes" under Other options means more people were available than the slot needed — the specific attendees shown are one valid combination, not the only one.</p>
       </div>
 
       <div class="card">
         <h2>By person</h2>
         <table id="person-table"></table>
+        <p class="hint" id="coverage-alt-note" style="display:none;margin:8px 0 0 0;"><span class="flex-mark"></span> marks a shift where more than one RA was available — the person shown is one valid choice, not the only one.</p>
       </div>
     </div>
     <div class="empty-state" id="schedule-empty">Set up your rules and roster, then generate the schedule.</div>
@@ -387,7 +484,8 @@
 --------------------------------------------------------------------- */
 let state = {
   params: {
-    slotLen: 120, minGroup: 3, open: "08:00", close: "21:00",
+    mode: "group",
+    slotLen: 120, minGroup: 2, open: "08:00", close: "21:00",
     blockDay: "", blockStart: "18:00", blockEnd: "19:00", priority: "M"
   },
   people: []   // {id, name, flag, target, avail:[{day,start,end}]}
@@ -443,6 +541,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
 --------------------------------------------------------------------- */
 function loadParamsIntoForm(){
   const p = state.params;
+  document.getElementById("p-mode").value = p.mode || "group";
   document.getElementById("p-slotlen").value = p.slotLen;
   document.getElementById("p-mingroup").value = p.minGroup;
   document.getElementById("p-open").value = p.open;
@@ -451,9 +550,12 @@ function loadParamsIntoForm(){
   document.getElementById("p-blockday").value = p.blockDay;
   document.getElementById("p-blockstart").value = p.blockStart;
   document.getElementById("p-blockend").value = p.blockEnd;
+  document.getElementById("p-allowoverlap").value = (p.allowOverlap===false) ? "no" : "yes";
+  applyModeVisibility();
 }
 function readParamsFromForm(){
   state.params = {
+    mode: document.getElementById("p-mode").value,
     slotLen: parseInt(document.getElementById("p-slotlen").value,10),
     minGroup: parseInt(document.getElementById("p-mingroup").value,10),
     open: document.getElementById("p-open").value,
@@ -461,7 +563,8 @@ function readParamsFromForm(){
     priority: document.getElementById("p-priority").value.trim(),
     blockDay: document.getElementById("p-blockday").value,
     blockStart: document.getElementById("p-blockstart").value,
-    blockEnd: document.getElementById("p-blockend").value
+    blockEnd: document.getElementById("p-blockend").value,
+    allowOverlap: document.getElementById("p-allowoverlap").value === "yes"
   };
 }
 document.getElementById("btn-save-params").addEventListener("click", async ()=>{
@@ -471,6 +574,26 @@ document.getElementById("btn-save-params").addEventListener("click", async ()=>{
   s.textContent = "Saved.";
   setTimeout(()=>s.textContent="",1500);
 });
+
+function applyModeVisibility(){
+  const mode = document.getElementById("p-mode").value;
+  const isCoverage = mode === "coverage";
+  document.getElementById("mingroup-field").style.display = isCoverage ? "none":"block";
+  document.getElementById("priority-field").style.display = isCoverage ? "none":"block";
+  document.getElementById("allowoverlap-field").style.display = isCoverage ? "block":"none";
+  document.getElementById("slotlen-label").textContent = isCoverage ? "Shift block length (minutes)" : "Timeslot length (minutes)";
+  document.getElementById("timeslot-hint").textContent = isCoverage
+    ? "Shorter blocks (e.g. 30 min) fit availability more precisely but fragment the schedule; longer blocks (60–90 min) give tidier shifts at some cost to precision."
+    : "These apply to every day the roster is available.";
+  updateGroupModeLabel();
+}
+function updateGroupModeLabel(){
+  const n = document.getElementById("p-mingroup").value || "2";
+  const opt = document.querySelector('#p-mode option[value="group"]');
+  if(opt) opt.textContent = `Group timeslots (${n}+ people per slot)`;
+}
+document.getElementById("p-mingroup").addEventListener("input", updateGroupModeLabel);
+document.getElementById("p-mode").addEventListener("change", applyModeVisibility);
 
 /* ---------------------------------------------------------------------
    ROSTER PANEL
@@ -560,7 +683,7 @@ document.getElementById("btn-load-example").addEventListener("click", ()=>{
 /* ---------------------------------------------------------------------
    EXAMPLE DATA (the RA lab roster from our earlier conversation)
 --------------------------------------------------------------------- */
-const EXAMPLE_PARAMS = {slotLen:120, minGroup:3, open:"08:00", close:"21:00", blockDay:"Tuesday", blockStart:"18:00", blockEnd:"19:00", priority:"M"};
+const EXAMPLE_PARAMS = {mode:"group", slotLen:120, minGroup:2, open:"08:00", close:"21:00", blockDay:"Tuesday", blockStart:"18:00", blockEnd:"19:00", priority:"M"};
 const EXAMPLE_ROSTER = [
   {name:"Emma P", flag:"", target:3, avail:[{day:"Monday",start:"09:30",end:"13:30"},{day:"Thursday",start:"11:30",end:"13:30"}]},
   {name:"Marielle R", flag:"", target:8, avail:[
@@ -850,7 +973,10 @@ function computeSchedule(){
       const person = people.find(p=>p.id===pid);
       return person.flag && person.flag.trim()===params.priority.trim();
     }) : false;
-    return { day: s.day, start: s.start, end: s.end, priority: actuallyHasPriority, attendees: attendeeNames };
+    // Flag when the slot could have been staffed by a different combination —
+    // i.e. more people were available for it than were actually needed/used.
+    const hasAlternative = s.cands.length > attendeeIds.length;
+    return { day: s.day, start: s.start, end: s.end, priority: actuallyHasPriority, attendees: attendeeNames, hasAlternative };
   }).sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
 
   // 4. Build per-person schedule: group hours + fill remaining from leftover availability
@@ -899,19 +1025,175 @@ function computeSchedule(){
 }
 
 /* ---------------------------------------------------------------------
+   COVERAGE MODE — single RA per shift, zero overlap between people.
+   Modeled as a bipartite flow problem (person -> time-unit -> sink, each
+   time-unit capped at 1) so double-covering is structurally impossible,
+   then solved with max-min-fair "water-filling": repeatedly give one more
+   shift-block to whichever person is currently the SMALLEST fraction of
+   the way to their own target, so someone with broad (heavily-shared)
+   availability doesn't get crowded out just for being flexible.
+--------------------------------------------------------------------- */
+function computeCoverageSchedule(){
+  const params = state.params;
+  const people = state.people.filter(p=>p.name.trim().length>0 && p.target>0);
+  if(people.length===0) return null;
+
+  const openM = toMin(params.open), closeM = toMin(params.close);
+  const blockDay = params.blockDay;
+  const blockStart = params.blockStart ? toMin(params.blockStart) : null;
+  const blockEnd = params.blockEnd ? toMin(params.blockEnd) : null;
+  const UNIT = params.slotLen; // shift-block length doubles as the atomic grid unit here
+
+  const daysPresent = Array.from(new Set(
+    people.flatMap(p=>p.avail.map(a=>a.day))
+  )).sort((a,b)=> DAY_ORDER.indexOf(a)-DAY_ORDER.indexOf(b));
+
+  function isAvail(person, day, u){ return person.avail.some(a=> toMin(a.start)<=u && toMin(a.end)>=u+UNIT && a.day===day); }
+  function isBlocked(day,u){ return blockDay && day===blockDay && u < blockEnd && (u+UNIT) > blockStart; }
+
+  const units = [];
+  daysPresent.forEach(day=>{ for(let u=openM; u+UNIT<=closeM; u+=UNIT){ if(!isBlocked(day,u)) units.push({day,start:u}); } });
+  const U = units.length, P = people.length;
+  if(U===0) return { days: daysPresent, params, schedule: Object.fromEntries(people.map(p=>[p.id,[]])), people,
+                      shortfalls: people.map(p=>({name:p.name, short:p.target, target:p.target})),
+                      hoursUsed: Object.fromEntries(people.map(p=>[p.id,0])) };
+
+  const V = 1+P+U+1, sink = V-1;
+  const cap = Array.from({length:V}, ()=>({}));
+  function addEdge(u,v,c){ cap[u][v]=(cap[u][v]||0)+c; cap[v][u]=(cap[v][u]||0)+0; }
+  people.forEach((p,i)=> addEdge(0, 1+i, 0) ); // opened gradually by the water-filling loop below
+  units.forEach((un,j)=> addEdge(1+P+j, sink, 1) ); // <= 1 person per time-unit: the actual "no overlap" guarantee
+  people.forEach((p,i)=>{
+    units.forEach((un,j)=>{ if(isAvail(p, un.day, un.start)) addEdge(1+i, 1+P+j, 1); });
+  });
+
+  function bfsAugmentFrom(sourceNode){
+    const parent = new Array(V).fill(-1);
+    parent[sourceNode]=sourceNode;
+    const queue=[sourceNode];
+    while(queue.length){
+      const u=queue.shift();
+      for(const v in cap[u]){
+        const vi=Number(v);
+        if(parent[vi]===-1 && cap[u][vi]>0){
+          parent[vi]=u;
+          if(vi===sink){ queue.length=0; break; }
+          queue.push(vi);
+        }
+      }
+    }
+    if(parent[sink]===-1) return false;
+    let v=sink;
+    while(v!==sourceNode){ const u=parent[v]; cap[u][v]-=1; cap[v][u]+=1; v=u; }
+    return true;
+  }
+
+  const unitHours = UNIT/60;
+  const targetUnits = {}; people.forEach(p=> targetUnits[p.id] = Math.round(p.target/unitHours) );
+  const gotUnits = {}; people.forEach(p=> gotUnits[p.id]=0 );
+  const stuck = new Set();
+  let progressed = true;
+  let guard = 0;
+  while(progressed && guard < 20000){
+    progressed = false;
+    const active = people.filter(p=> !stuck.has(p.id) && gotUnits[p.id] < targetUnits[p.id]);
+    active.sort((a,b)=> (gotUnits[a.id]/targetUnits[a.id]) - (gotUnits[b.id]/targetUnits[b.id]));
+    for(const p of active){
+      guard++;
+      const i = people.indexOf(p);
+      if(bfsAugmentFrom(1+i)){ gotUnits[p.id]++; progressed = true; }
+      else stuck.add(p.id);
+    }
+  }
+
+  const schedule = {}; people.forEach(p=> schedule[p.id]=[] );
+  const hoursUsed = {}; people.forEach(p=> hoursUsed[p.id]=0 );
+  people.forEach((p,i)=>{
+    units.forEach((un,j)=>{
+      if(isAvail(p, un.day, un.start)){
+        const used = 1 - cap[1+i][1+P+j];
+        if(used > 0.5){
+          const altCount = people.filter(other=> other.id!==p.id && isAvail(other, un.day, un.start)).length;
+          const blocks = schedule[p.id];
+          const last = blocks[blocks.length-1];
+          if(last && last.day===un.day && last.end===un.start){ last.end = un.start+UNIT; if(altCount>0) last.hasAlternative=true; }
+          else blocks.push({day: un.day, start: un.start, end: un.start+UNIT, type:"SOLO", hasAlternative: altCount>0});
+          hoursUsed[p.id] += unitHours;
+        }
+      }
+    });
+  });
+
+  // Phase 2 — overlap fallback. Phase 1's augmenting search already tried every
+  // possible reassignment to give each person a unit with zero overlap, so if
+  // someone is still short here, there is genuinely no more no-overlap room for
+  // them. Only now do we allow double-covering: fill their remaining hours from
+  // their own leftover availability regardless of who else is already there,
+  // and tag those blocks distinctly so the schedule shows exactly where overlap
+  // was actually necessary.
+  function subtractIntervals(intervals, day, s, e){
+    const out=[];
+    intervals.forEach(iv=>{
+      if(iv.day!==day || e<=iv.start || s>=iv.end){ out.push(iv); return; }
+      if(s>iv.start) out.push({day, start:iv.start, end:s});
+      if(e<iv.end) out.push({day, start:e, end:iv.end});
+    });
+    return out;
+  }
+  const overlapAdded = [];
+  if(params.allowOverlap !== false){
+    people.forEach(p=>{
+      let need = p.target - hoursUsed[p.id];
+      if(need <= 1e-9) return;
+      let leftover = p.avail.map(a=>({day:a.day, start:toMin(a.start), end:toMin(a.end)}));
+      if(blockDay) leftover = subtractIntervals(leftover, blockDay, blockStart, blockEnd);
+      schedule[p.id].forEach(iv=> { leftover = subtractIntervals(leftover, iv.day, iv.start, iv.end); });
+      leftover.sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+      for(const iv of leftover){
+        if(need <= 1e-9) break;
+        const wlen = (iv.end-iv.start)/60;
+        const take = Math.min(wlen, need);
+        const takeEnd = iv.start + Math.round(take*60);
+        schedule[p.id].push({day: iv.day, start: iv.start, end: takeEnd, type:"OVERLAP"});
+        hoursUsed[p.id] += take;
+        need -= take;
+        overlapAdded.push({name:p.name, day:iv.day, start:iv.start, end:takeEnd, hours:take});
+      }
+    });
+  }
+
+  const shortfalls = [];
+  people.forEach(p=>{ const short = p.target - hoursUsed[p.id]; if(short>1e-6) shortfalls.push({name:p.name, short, target:p.target}); });
+
+  return { days: daysPresent, params, schedule, people, shortfalls, hoursUsed, overlapAdded };
+}
+
+/* ---------------------------------------------------------------------
    RENDER RESULTS
 --------------------------------------------------------------------- */
 function renderResults(result){
   document.getElementById("schedule-empty").style.display = result ? "none":"block";
   document.getElementById("results").style.display = result ? "block":"none";
   if(!result) return;
+  const isCoverage = result.params.mode === "coverage";
+  document.getElementById("groupslots-card").style.display = isCoverage ? "none":"block";
+  document.getElementById("legend-group").style.display = isCoverage ? "none":"inline";
+  document.getElementById("legend-indiv").style.display = isCoverage ? "none":"inline";
+  document.getElementById("legend-solo").style.display = isCoverage ? "inline":"none";
+  document.getElementById("legend-overlap").style.display = (isCoverage && result.overlapAdded && result.overlapAdded.length) ? "inline":"none";
 
-  // Warning box
+  // Warning / notice box
   const warnBox = document.getElementById("short-warning");
   if(result.shortfalls.length){
     warnBox.classList.remove("empty");
+    const note = isCoverage ? " (couldn't be closed even with overlap allowed — there simply isn't enough availability)" : "";
     warnBox.innerHTML = "Not enough availability to reach target hours for: " +
-      result.shortfalls.map(s=>`${escapeHtml(s.name)} (short ${s.short.toFixed(1)}h of ${s.target}h)`).join(", ");
+      result.shortfalls.map(s=>`${escapeHtml(s.name)} (short ${s.short.toFixed(1)}h of ${s.target}h)`).join(", ") + note;
+  } else if(isCoverage && result.overlapAdded && result.overlapAdded.length){
+    const totalOverlapH = result.overlapAdded.reduce((s,o)=>s+o.hours,0);
+    warnBox.classList.remove("empty");
+    warnBox.style.background = "#FCF3D9"; warnBox.style.borderColor = "#E3CE7A"; warnBox.style.color = "#7A5E12";
+    warnBox.innerHTML = `${totalOverlapH.toFixed(1)}h of overlap was added to fully cover everyone's target hours — no-overlap availability ran out first. Pink cells in the grid below show exactly where.`;
   } else {
     warnBox.classList.add("empty");
     warnBox.innerHTML = "";
@@ -929,7 +1211,7 @@ function renderResults(result){
       for(let t=iv.start; t<iv.end; t+=30){
         occ[iv.day] = occ[iv.day]||{};
         occ[iv.day][t] = occ[iv.day][t]||[];
-        occ[iv.day][t].push({name:person.name, type:iv.type});
+        occ[iv.day][t].push({name:person.name, type:iv.type, hasAlternative:iv.hasAlternative});
       }
     });
   });
@@ -942,13 +1224,21 @@ function renderResults(result){
         gridHtml += `<td class="cell-slot cell-block">Blocked meeting</td>`;
       } else {
         const here = (occ[day] && occ[day][t]) || [];
-        const groupNames = here.filter(x=>x.type==="GROUP").map(x=>x.name).sort();
-        const indivNames = here.filter(x=>x.type==="INDIV").map(x=>x.name).sort();
-        let cls = "cell-slot";
-        let text = "";
-        if(groupNames.length){ cls+=" cell-group"; text += "<b>Group:</b> "+groupNames.join(", "); }
-        if(indivNames.length){ cls+=(groupNames.length?"":" cell-indiv"); text += (groupNames.length?"<br>":"")+"<b>Indiv:</b> "+indivNames.join(", "); }
-        gridHtml += `<td class="${cls}">${text}</td>`;
+        if(isCoverage){
+          const isOverlapCell = here.length>1 || here.some(x=>x.type==="OVERLAP");
+          const cls = "cell-slot" + (here.length===0 ? "" : (isOverlapCell ? " cell-overlap":" cell-solo"));
+          const anyAlt = here.some(x=>x.hasAlternative);
+          const text = here.map(x=>escapeHtml(x.name)).sort().join(", ") + (anyAlt ? '<span class="flex-mark" title="Other RAs were also available for this slot"></span>' : "");
+          gridHtml += `<td class="${cls}">${text}</td>`;
+        } else {
+          const groupNames = here.filter(x=>x.type==="GROUP").map(x=>x.name).sort();
+          const indivNames = here.filter(x=>x.type==="INDIV").map(x=>x.name).sort();
+          let cls = "cell-slot";
+          let text = "";
+          if(groupNames.length){ cls+=" cell-group"; text += "<b>Group:</b> "+groupNames.join(", "); }
+          if(indivNames.length){ cls+=(groupNames.length?"":" cell-indiv"); text += (groupNames.length?"<br>":"")+"<b>Indiv:</b> "+indivNames.join(", "); }
+          gridHtml += `<td class="${cls}">${text}</td>`;
+        }
       }
     });
     gridHtml += "</tr>";
@@ -956,25 +1246,36 @@ function renderResults(result){
   gridHtml += "</tbody>";
   document.getElementById("grid-table").innerHTML = gridHtml;
 
-  // Group slots table
-  let gHtml = "<thead><tr><th>Day</th><th>Start</th><th>End</th><th>Priority match</th><th>Attendees</th></tr></thead><tbody>";
-  result.groupSlots.forEach(s=>{
-    gHtml += `<tr><td>${s.day}</td><td>${fmtTime(s.start)}</td><td>${fmtTime(s.end)}</td><td>${s.priority?'<span class="tag-yes">Yes</span>':'<span class="tag-no">No</span>'}</td><td>${s.attendees.join(", ")}</td></tr>`;
-  });
-  if(result.groupSlots.length===0) gHtml += `<tr><td colspan="5">No group slot meeting the minimum could be staffed with this roster.</td></tr>`;
-  gHtml += "</tbody>";
-  document.getElementById("groups-table").innerHTML = gHtml;
+  // Group slots table (group mode only)
+  if(!isCoverage){
+    let gHtml = "<thead><tr><th>Day</th><th>Start</th><th>End</th><th>Priority match</th><th>Attendees</th><th>Other options?</th></tr></thead><tbody>";
+    result.groupSlots.forEach(s=>{
+      const altCell = s.hasAlternative ? '<span title="More people were available than were needed — a different combination could also have worked">Yes</span>' : "No";
+      gHtml += `<tr><td>${s.day}</td><td>${fmtTime(s.start)}</td><td>${fmtTime(s.end)}</td><td>${s.priority?'<span class="tag-yes">Yes</span>':'<span class="tag-no">No</span>'}</td><td>${s.attendees.join(", ")}</td><td>${altCell}</td></tr>`;
+    });
+    if(result.groupSlots.length===0) gHtml += `<tr><td colspan="6">No group slot meeting the minimum could be staffed with this roster.</td></tr>`;
+    gHtml += "</tbody>";
+    document.getElementById("groups-table").innerHTML = gHtml;
+    const anyAlt = result.groupSlots.some(s=>s.hasAlternative);
+    document.getElementById("groupslots-alt-note").style.display = anyAlt ? "block":"none";
+  }
+  document.getElementById("coverage-alt-note").style.display = (isCoverage && Object.values(result.schedule).some(entries=>entries.some(iv=>iv.hasAlternative))) ? "block":"none";
 
   // Per person table
-  let pHtml = "<thead><tr><th>Name</th><th>Target (h)</th><th>Scheduled (h)</th><th>Day</th><th>Start</th><th>End</th><th>Type</th></tr></thead><tbody>";
+  const typeHeader = isCoverage ? "" : "<th>Type</th>";
+  let pHtml = `<thead><tr><th>Name</th><th>Target (h)</th><th>Scheduled (h)</th><th>Day</th><th>Start</th><th>End</th>${typeHeader}</tr></thead><tbody>`;
   result.people.forEach(p=>{
     const entries = [...result.schedule[p.id]].sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
+    const colspan = isCoverage ? 3 : 4;
     if(entries.length===0){
-      pHtml += `<tr><td>${escapeHtml(p.name)}</td><td>${p.target}</td><td>${result.hoursUsed[p.id].toFixed(1)}</td><td colspan="4">—</td></tr>`;
+      pHtml += `<tr><td>${escapeHtml(p.name)}</td><td>${p.target}</td><td>${result.hoursUsed[p.id].toFixed(1)}</td><td colspan="${colspan}">—</td></tr>`;
     }
     entries.forEach((iv, idx)=>{
-      pHtml += `<tr><td>${idx===0?escapeHtml(p.name):""}</td><td>${idx===0?p.target:""}</td><td>${idx===0?result.hoursUsed[p.id].toFixed(1):""}</td>
-        <td>${iv.day}</td><td>${fmtTime(iv.start)}</td><td>${fmtTime(iv.end)}</td><td>${iv.type==="GROUP"?"Group":"Individual"}</td></tr>`;
+      const typeLabel = iv.type==="GROUP" ? "Group" : (iv.type==="OVERLAP" ? "Overlap" : "Individual");
+      const typeCell = isCoverage ? "" : `<td>${typeLabel}</td>`;
+      const rowStyle = iv.type==="OVERLAP" ? ' style="color:#B3432D;"' : "";
+      pHtml += `<tr${rowStyle}><td>${idx===0?escapeHtml(p.name):""}</td><td>${idx===0?p.target:""}</td><td>${idx===0?result.hoursUsed[p.id].toFixed(1):""}</td>
+        <td>${iv.day}</td><td>${fmtTime(iv.start)}</td><td>${fmtTime(iv.end)}</td>${typeCell}</tr>`;
     });
   });
   pHtml += "</tbody>";
@@ -984,13 +1285,15 @@ function renderResults(result){
 document.getElementById("btn-generate").addEventListener("click", async ()=>{
   readParamsFromForm();
   await saveState();
-  lastResult = computeSchedule();
+  lastResult = state.params.mode === "coverage" ? computeCoverageSchedule() : computeSchedule();
   renderResults(lastResult);
   const s = document.getElementById("schedule-status");
   if(lastResult){
-    s.textContent = `${lastResult.groupSlots.length} group slot(s) scheduled.`;
+    s.textContent = state.params.mode === "coverage"
+      ? "Coverage schedule generated."
+      : `${lastResult.groupSlots.length} group slot(s) scheduled.`;
   } else {
-    s.textContent = "Add at least one person with a name first.";
+    s.textContent = "Add at least one person with a name and target hours first.";
   }
   setTimeout(()=>s.textContent="", 3000);
 });
@@ -999,20 +1302,24 @@ document.getElementById("btn-print").addEventListener("click", ()=> window.print
 
 document.getElementById("btn-export-csv").addEventListener("click", ()=>{
   if(!lastResult){ alert("Generate a schedule first."); return; }
-  let csv = "Name,Target Hours,Scheduled Hours,Day,Start,End,Type\n";
+  const isCoverage = lastResult.params.mode === "coverage";
+  let csv = `Name,Target Hours,Scheduled Hours,Day,Start,End,Type\n`;
   lastResult.people.forEach(p=>{
     const entries = [...lastResult.schedule[p.id]].sort((a,b)=> DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day) || a.start-b.start);
     if(entries.length===0){
       csv += `"${p.name}",${p.target},${lastResult.hoursUsed[p.id].toFixed(1)},,,,\n`;
     }
     entries.forEach(iv=>{
-      csv += `"${p.name}",${p.target},${lastResult.hoursUsed[p.id].toFixed(1)},${iv.day},${fmtTime(iv.start)},${fmtTime(iv.end)},${iv.type==="GROUP"?"Group":"Individual"}\n`;
+      const label = iv.type==="GROUP" ? "Group" : (iv.type==="OVERLAP" ? "Overlap" : (isCoverage ? "Solo" : "Individual"));
+      csv += `"${p.name}",${p.target},${lastResult.hoursUsed[p.id].toFixed(1)},${iv.day},${fmtTime(iv.start)},${fmtTime(iv.end)},${label}\n`;
     });
   });
-  csv += "\nGroup Slots\nDay,Start,End,Priority Match,Attendees\n";
-  lastResult.groupSlots.forEach(s=>{
-    csv += `${s.day},${fmtTime(s.start)},${fmtTime(s.end)},${s.priority?"Yes":"No"},"${s.attendees.join(", ")}"\n`;
-  });
+  if(!isCoverage){
+    csv += "\nGroup Slots\nDay,Start,End,Priority Match,Attendees\n";
+    lastResult.groupSlots.forEach(s=>{
+      csv += `${s.day},${fmtTime(s.start)},${fmtTime(s.end)},${s.priority?"Yes":"No"},"${s.attendees.join(", ")}"\n`;
+    });
+  }
   const blob = new Blob([csv], {type:"text/csv"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
